@@ -32,7 +32,7 @@ function create() {
     this.modifiers = {};
     this.stack = new Stack();
     // default logger "log"
-    this.create('log');
+    this.addLogger('log');
   }
 
   /**
@@ -66,19 +66,19 @@ function create() {
   };
 
   /**
-   * Create a logger method to emit an event with the given `name`.
+   * Add a logger method to emit an event with the given `name`.
    *
    * ```js
-   * // create a default `write` logger
-   * logger.create('write');
+   * // add a default `write` logger
+   * logger.addLogger('write');
    *
-   * // create a `red` logger that modifies the msg
-   * logger.create('red', {type: 'modifier'}, function(msg) {
+   * // add a `red` logger that modifies the msg
+   * logger.addLogger('red', {type: 'modifier'}, function(msg) {
    *   return colors.red(msg);
    * });
    *
-   * // create an `info` logger that colors the msg
-   * logger.create('info', function(msg) {
+   * // add an `info` logger that colors the msg
+   * logger.addLogger('info', function(msg) {
    *   return colors.cyan(msg);
    * });
    *
@@ -91,11 +91,12 @@ function create() {
    * @param  {Object} `options` Options used when creating the logger method.
    * @param  {String|Array} `options.type` Type of logger method being created. Defaults to `logger`. Valid values are `['logger', 'modifier']`
    * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
+   * @emits  {String} `addLogger` Emits name of the logger after adding the logger method.
    * @return {Object} `Logger` for chaining
    * @api public
    */
 
-  Logger.prototype.create = function(name, options, fn) {
+  Logger.prototype.addLogger = function(name, options, fn) {
     this.methods[name] = null;
     Object.defineProperty(Logger.prototype, name, {
       configurable: true,
@@ -106,6 +107,7 @@ function create() {
         return fn;
       }
     });
+    this.emit('addLogger', name);
     return this;
   };
 
@@ -114,13 +116,13 @@ function create() {
    *
    * ```js
    * // create a simple `verbose` mode
-   * logger.mode('verbose');
+   * logger.addMode('verbose');
    *
    * // create a `not` toggle mode
-   * logger.mode('not', {type: 'toggle'});
+   * logger.addMode('not', {type: 'toggle'});
    *
    * // create a `debug` mode that modifies the message
-   * logger.mode('debug', function(msg) {
+   * logger.addMode('debug', function(msg) {
    *   return '[DEBUG]: ' + msg;
    * });
    *
@@ -132,21 +134,23 @@ function create() {
    *
    * @param  {String} `mode` Mode to add to the logger.
    * @param  {Object} `options` Options to describe the mode.
-   * @param {String|Array} `options.type` Type of mode being created. Defaults to `mode`. Valid values are `['mode', 'toggle']`
+   * @param  {String|Array} `options.type` Type of mode being created. Defaults to `mode`. Valid values are `['mode', 'toggle']`
    *                                      `toggle` mode may be used to indicate a "flipped" state for another mode.
    *                                      e.g. `not.verbose`
    *                                      `toggle` modes may not be used directly for emitting log events.
-   * @param {Function} `fn` Optional modifier function that can be used to modify an emitted message.
+   * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
+   * @emits  {String} `addMode` Emits name of the mode after adding the mode method.
    * @return {Object} `Logger` for chaining
    * @api public
    */
 
-  Logger.prototype.mode = function(mode, options, fn) {
+  Logger.prototype.addMode = function(mode, options, fn) {
     Object.defineProperty(Logger.prototype, mode, {
       configurable: true,
       enumerable: true,
       get: buildMode.call(this, mode, options, fn)
     });
+    this.emit('addMode', mode);
     return this;
   };
 
