@@ -8,7 +8,8 @@
   "bugs": "https://github.com/doowb/log-events/issues",
   "license": "MIT",
   "files": [
-    "index.js"
+    "index.js",
+    "lib"
   ],
   "main": "index.js",
   "engines": {
