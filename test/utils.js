@@ -59,7 +59,7 @@ describe('utils', function() {
       try {
         utils.assertType(['foo', 'bar', 'baz'], ['foo', 'baz']);
         cb();
-      } catch(err) {
+      } catch (err) {
         cb(err);
       }
     });
@@ -68,7 +68,7 @@ describe('utils', function() {
       try {
         utils.assertType(['foo', 'bar', 'baz'], ['foo', 'quux']);
         cb(new Error('expected an error'));
-      } catch(err) {
+      } catch (err) {
         assert(err);
         assert.equal(err.message, '"type" must be one of [foo, bar, baz] but got "quux"');
         cb();

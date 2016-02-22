@@ -9,7 +9,6 @@
 
 require('mocha');
 var assert = require('assert');
-var utils = require('../lib/utils');
 var Mode = require('../lib/mode');
 var Modifier = require('../lib/modifier');
 var Stack = require('../lib/stack');
@@ -89,7 +88,7 @@ describe('stack', function() {
     var error = new Modifier({name: 'error', type: 'logger'});
     stack.addModifier(error);
     assert.equal(typeof stack.current.name, 'undefined');
-    stack.setName(error)
+    stack.setName(error);
     assert.deepEqual(stack.current.getModes('name'), ['verbose']);
     assert.deepEqual(stack.current.getModifiers('name'), ['red', 'error']);
     assert.equal(stack.current.name, 'error');

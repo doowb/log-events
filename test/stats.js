@@ -9,7 +9,6 @@
 
 require('mocha');
 var assert = require('assert');
-var utils = require('../lib/utils');
 var Mode = require('../lib/mode');
 var Modifier = require('../lib/modifier');
 var Stats = require('../lib/stats');
@@ -85,7 +84,7 @@ describe('stats', function() {
     var parent = Stats();
     parent.addMode(new Mode({name: 'verbose'}));
     parent.addModifier(new Modifier({name: 'red'}));
-    parent.addModifier(new Modifier({name: 'error', type: 'logger'}))
+    parent.addModifier(new Modifier({name: 'error', type: 'logger'}));
     assert.deepEqual(parent.getModes('name'), ['verbose']);
     assert.deepEqual(parent.getModifiers('name'), ['red', 'error']);
 

@@ -15,7 +15,7 @@ var Mode = require('../lib/mode');
 describe('mode', function() {
   it('should throw an error when `name` is not defined', function(cb) {
     try {
-      var mode = new Mode();
+      Mode();
       cb(new Error('expected an error'));
     } catch (err) {
       assert(err);
@@ -26,7 +26,7 @@ describe('mode', function() {
 
   it('should throw an error when `type` is not valid', function(cb) {
     try {
-      var mode = new Mode({name: 'foo', type: 'bar'});
+      Mode({name: 'foo', type: 'bar'});
       cb(new Error('expected an error'));
     } catch (err) {
       assert(err);
@@ -106,5 +106,5 @@ describe('mode', function() {
   it('should have a custom inspect function that returns the name', function() {
     var mode = new Mode({name: 'foo'});
     assert.equal(mode.inspect(), 'foo');
-  })
+  });
 });

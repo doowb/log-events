@@ -15,7 +15,7 @@ var Modifier = require('../lib/modifier');
 describe('modifier', function() {
   it('should throw an error when `name` is not defined', function(cb) {
     try {
-      var modifier = new Modifier();
+      Modifier();
       cb(new Error('expected an error'));
     } catch (err) {
       assert(err);
@@ -26,7 +26,7 @@ describe('modifier', function() {
 
   it('should throw an error when `type` is not valid', function(cb) {
     try {
-      var modifier = new Modifier({name: 'foo', type: 'bar'});
+      Modifier({name: 'foo', type: 'bar'});
       cb(new Error('expected an error'));
     } catch (err) {
       assert(err);
@@ -106,5 +106,5 @@ describe('modifier', function() {
   it('should have a custom inspect function that returns the name', function() {
     var modifier = new Modifier({name: 'foo'});
     assert.equal(modifier.inspect(), 'foo');
-  })
+  });
 });
