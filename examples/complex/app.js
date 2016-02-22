@@ -123,7 +123,7 @@ Verbalize.prototype.style = function(name, options, fn) {
     options = {};
   }
   var opts = utils.extend({type: ['modifier'], fn: fn}, options);
-  return this.create(name, opts);
+  return this.addLogger(name, opts);
 };
 
 /**

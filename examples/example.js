@@ -61,11 +61,11 @@ logger.log('this is a simple log event');
 console.log();
 
 /**
- * Create custom logger methods with `.create`
+ * Create custom logger methods with `.addLogger`
  */
 
-logger.create('info');
-logger.create('warn');
+logger.addLogger('info');
+logger.addLogger('warn');
 logger.info('this is a custom log event');
 console.log();
 
@@ -84,7 +84,7 @@ console.log();
  * for use when the event is emitted.
  */
 
-logger.create('cyan', {type: ['modifier']}, function(msg) {
+logger.addLogger('cyan', {type: ['modifier']}, function(msg) {
   return '\u001b[36m' + msg + '\u001b[39m';
 });
 logger.cyan.info('this is only logged once but with a cyan color');
@@ -94,7 +94,7 @@ console.log();
  * Custom modes can be added and used to change the behavior inside event listeners
  */
 
-logger.mode('verbose');
+logger.addMode('verbose');
 
 logger.verbose.info('[before setting the option]: this will only be seen if `options.verbose` is `true`');
 logger.options.verbose = true;
@@ -106,7 +106,7 @@ console.log();
  * This needs to be handled inside the event listener.
  */
 
-logger.mode('debug', function(msg) {
+logger.addMode('debug', function(msg) {
   return '\u001b[33m[debug]\u001b[39m: ' + msg;
 });
 
