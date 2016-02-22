@@ -33,7 +33,27 @@
     "should": "*",
     "strip-color": "^0.1.0"
   },
-  "keywords": [],
+  "keywords": [
+    "console",
+    "console-log",
+    "debug",
+    "debugging",
+    "emit",
+    "emitter",
+    "emitting",
+    "error",
+    "event",
+    "events",
+    "log",
+    "logger",
+    "logging",
+    "logs",
+    "messages",
+    "verbalize",
+    "verbose",
+    "write",
+    "writing"
+  ],
   "dependencies": {
     "component-emitter": "^1.2.0",
     "define-property": "^0.2.5",
