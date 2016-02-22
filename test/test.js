@@ -32,12 +32,12 @@ describe('log-events', function() {
     assert.equal(typeof logger.on, 'function');
   });
 
-  it('should have a create method', function() {
-    assert.equal(typeof logger.create, 'function');
+  it('should have a addLogger method', function() {
+    assert.equal(typeof logger.addLogger, 'function');
   });
 
-  it('should have a mode method', function() {
-    assert.equal(typeof logger.mode, 'function');
+  it('should have a addMode method', function() {
+    assert.equal(typeof logger.addMode, 'function');
   });
 
   it('should have a default logger `log` method', function() {
@@ -46,23 +46,39 @@ describe('log-events', function() {
 
   it('should add a new logger method', function() {
     assert.equal(typeof logger.write, 'undefined');
-    logger.create('write');
+    logger.addLogger('write');
     assert.equal(typeof logger.write, 'function');
   });
 
   it('should add a new mode method', function() {
     assert.equal(typeof logger.verbose, 'undefined');
-    logger.mode('verbose');
+    logger.addMode('verbose');
     assert.equal(typeof logger.verbose, 'function');
+  });
+
+  it('should emit when adding a new logger method', function(cb) {
+    logger.on('addLogger', function(name) {
+      assert.equal(name, 'write');
+      cb();
+    });
+    logger.addLogger('write');
+  });
+
+  it('should emit when adding a new mode method', function(cb) {
+    logger.on('addMode', function(name) {
+      assert.equal(name, 'verbose');
+      cb();
+    });
+    logger.addMode('verbose');
   });
 
   it('should change mode and logger methods', function() {
     assert.equal(typeof logger.write, 'undefined');
     assert.equal(typeof logger.verbose, 'undefined');
-    logger.mode('verbose');
+    logger.addMode('verbose');
     assert.equal(typeof logger.verbose, 'function');
     assert.equal(typeof logger.write, 'undefined');
-    logger.create('write');
+    logger.addLogger('write');
     assert.equal(typeof logger.verbose, 'function');
     assert.equal(typeof logger.write, 'function');
     assert.equal(typeof logger.verbose.write, 'function');
@@ -70,9 +86,9 @@ describe('log-events', function() {
 
   it('should allow overwritting set methods', function() {
     assert.equal(typeof logger.write, 'undefined');
-    logger.mode('verbose');
-    logger.mode('not', {type: 'toggle'});
-    logger.create('write');
+    logger.addMode('verbose');
+    logger.addMode('not', {type: 'toggle'});
+    logger.addLogger('write');
     assert.equal(typeof logger.write, 'function');
     logger.write = function(str) {
       console.error(str);
@@ -88,7 +104,7 @@ describe('log-events', function() {
   });
 
   it('should allow passing a modifier function when creating a logger', function() {
-    logger.create('write', function(msg) {
+    logger.addLogger('write', function(msg) {
       return '[LOG]: ' + msg;
     });
     assert.equal(typeof logger.write, 'function');
@@ -96,9 +112,9 @@ describe('log-events', function() {
   });
 
   it('should chain modifiers in current stats object when type is modifier', function(cb) {
-    logger.mode('verbose');
-    logger.create('write');
-    logger.create('red', {type: 'modifier'});
+    logger.addMode('verbose');
+    logger.addLogger('write');
+    logger.addLogger('red', {type: 'modifier'});
     logger.on('write', function(stats) {
       assert.deepEqual(stats.getModes('name'), ['verbose']);
       assert.deepEqual(stats.getModifiers('name'), ['red', 'write']);
@@ -109,17 +125,17 @@ describe('log-events', function() {
   });
 
   it('should allow passing a modifier function when defining a mode', function() {
-    logger.mode('debug', function(msg) {
+    logger.addMode('debug', function(msg) {
       return '[DEBUG]: ' + msg;
     });
-    logger.create('write');
+    logger.addLogger('write');
     assert.equal(typeof logger.debug, 'function');
     assert.equal(typeof logger.write, 'function');
     assert.equal(logger.modes.debug.fn('foo'), '[DEBUG]: foo');
   });
 
   it('should allow calling a mode function directly', function(cb) {
-    logger.mode('debug');
+    logger.addMode('debug');
     assert.equal(typeof logger.debug, 'function');
     logger.on('log', function(stats) {
       assert.deepEqual(stats.getModes('name'), ['debug']);
