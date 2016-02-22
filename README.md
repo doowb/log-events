@@ -17,9 +17,9 @@ $ npm i log-events --save
 Create a new `Logger` constructor to allow
 updating the prototype without affecting other contructors.
 
-### [.create](index.js#L98)
+### [.addLogger](index.js#L99)
 
-Create a logger method to emit an event with the given `name`.
+Add a logger method to emit an event with the given `name`.
 
 **Params**
 
@@ -29,19 +29,23 @@ Create a logger method to emit an event with the given `name`.
 * `fn` **{Function}**: Optional modifier function that can be used to modify an emitted message.
 * `returns` **{Object}** `Logger`: for chaining
 
+**Events**
+
+* `emits`: `addLogger` Emits name of the logger after adding the logger method.
+
 **Example**
 
 ```js
-// create a default `write` logger
-logger.create('write');
+// add a default `write` logger
+logger.addLogger('write');
 
-// create a `red` logger that modifies the msg
-logger.create('red', {type: 'modifier'}, function(msg) {
+// add a `red` logger that modifies the msg
+logger.addLogger('red', {type: 'modifier'}, function(msg) {
   return colors.red(msg);
 });
 
-// create an `info` logger that colors the msg
-logger.create('info', function(msg) {
+// add an `info` logger that colors the msg
+logger.addLogger('info', function(msg) {
   return colors.cyan(msg);
 });
 
@@ -50,7 +54,7 @@ logger.red.write('this is a read message');
 logger.info('this is a cyan message');
 ```
 
-### [.mode](index.js#L144)
+### [.addMode](index.js#L147)
 
 Add arbitrary modes to be used for creating namespaces for logger methods.
 
@@ -62,17 +66,21 @@ Add arbitrary modes to be used for creating namespaces for logger methods.
 * `fn` **{Function}**: Optional modifier function that can be used to modify an emitted message.
 * `returns` **{Object}** `Logger`: for chaining
 
+**Events**
+
+* `emits`: `addMode` Emits name of the mode after adding the mode method.
+
 **Example**
 
 ```js
 // create a simple `verbose` mode
-logger.mode('verbose');
+logger.addMode('verbose');
 
 // create a `not` toggle mode
-logger.mode('not', {type: 'toggle'});
+logger.addMode('not', {type: 'toggle'});
 
 // create a `debug` mode that modifies the message
-logger.mode('debug', function(msg) {
+logger.addMode('debug', function(msg) {
   return '[DEBUG]: ' + msg;
 });
 
