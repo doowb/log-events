@@ -23,6 +23,7 @@
     "capture-stream": "^0.1.2",
     "gulp": "^3.9.1",
     "gulp-eslint": "^2.0.0",
+    "gulp-format-md": "^0.1.7",
     "gulp-istanbul": "^0.10.3",
     "gulp-mocha": "^2.2.0",
     "is-enabled": "^0.1.0",
@@ -42,5 +43,21 @@
     "set-value": "^0.3.3",
     "union-value": "^0.2.3",
     "use": "^1.1.2"
+  },
+  "verb": {
+    "layout": "default",
+    "tasks": [
+      "readme"
+    ],
+    "plugins": [
+      "gulp-format-md"
+    ],
+    "related": {
+      "list": [
+        "falsey",
+        "is-enabled",
+        "verbalize"
+      ]
+    }
   }
 }

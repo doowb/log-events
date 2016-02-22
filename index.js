@@ -47,7 +47,6 @@ function create() {
    * @param  {String} `name` the name of the log event to emit. Example: `info`
    * @param  {String} `message` Message intended to be emitted.
    * @return {Object} `Logger` for chaining
-   * @api public
    */
 
   Logger.prototype._emit = function(name/*, message*/) {
@@ -69,7 +68,29 @@ function create() {
   /**
    * Create a logger method to emit an event with the given `name`.
    *
+   * ```js
+   * // create a default `write` logger
+   * logger.create('write');
+   *
+   * // create a `red` logger that modifies the msg
+   * logger.create('red', {type: 'modifier'}, function(msg) {
+   *   return colors.red(msg);
+   * });
+   *
+   * // create an `info` logger that colors the msg
+   * logger.create('info', function(msg) {
+   *   return colors.cyan(msg);
+   * });
+   *
+   * // use the loggers:
+   * logger.red.write('this is a read message');
+   * logger.info('this is a cyan message');
+   * ```
+   *
    * @param  {String} `name` the name of the log event to emit
+   * @param  {Object} `options` Options used when creating the logger method.
+   * @param  {String|Array} `options.type` Type of logger method being created. Defaults to `logger`. Valid values are `['logger', 'modifier']`
+   * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
    * @return {Object} `Logger` for chaining
    * @api public
    */
@@ -91,8 +112,31 @@ function create() {
   /**
    * Add arbitrary modes to be used for creating namespaces for logger methods.
    *
+   * ```js
+   * // create a simple `verbose` mode
+   * logger.mode('verbose');
+   *
+   * // create a `not` toggle mode
+   * logger.mode('not', {type: 'toggle'});
+   *
+   * // create a `debug` mode that modifies the message
+   * logger.mode('debug', function(msg) {
+   *   return '[DEBUG]: ' + msg;
+   * });
+   *
+   * // use the modes with loggers from above:
+   * logger.verbose.red.write('write a red message when verbose is true');
+   * logger.not.verbose.info('write a cyan message when verbose is false');
+   * logger.debug('write a message when debug is true');
+   * ```
+   *
    * @param  {String} `mode` Mode to add to the logger.
    * @param  {Object} `options` Options to describe the mode.
+   * @param {String|Array} `options.type` Type of mode being created. Defaults to `mode`. Valid values are `['mode', 'toggle']`
+   *                                      `toggle` mode may be used to indicate a "flipped" state for another mode.
+   *                                      e.g. `not.verbose`
+   *                                      `toggle` modes may not be used directly for emitting log events.
+   * @param {Function} `fn` Optional modifier function that can be used to modify an emitted message.
    * @return {Object} `Logger` for chaining
    * @api public
    */
