@@ -1,4 +1,4 @@
-# log-events [![NPM version](https://img.shields.io/npm/v/log-events.svg)](https://www.npmjs.com/package/log-events) [![Build Status](https://img.shields.io/travis/https://github.com/doowb/log-events.svg)](https://travis-ci.org/https://github.com/doowb/log-events)
+# log-events [![NPM version](https://img.shields.io/npm/v/log-events.svg)](https://www.npmjs.com/package/log-events) [![Build Status](https://img.shields.io/travis/doowb/log-events.svg)](https://travis-ci.org/doowb/log-events)
 
 > Create custom, chainable logging methods that emit log events when called.
 
@@ -344,7 +344,7 @@ Pull requests and stars are always welcome. For bugs and feature requests, [plea
 ## License
 
 Copyright © 2016 [Brian Woodward](https://github.com/doowb)
-Released under the [MIT license](https://github.com/https://github.com/doowb/log-events/blob/master/LICENSE).
+Released under the [MIT license](https://github.com/doowb/log-events/blob/master/LICENSE).
 
 ***
 
