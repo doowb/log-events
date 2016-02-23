@@ -17,7 +17,43 @@ $ npm i log-events --save
 Create a new `Logger` constructor to allow
 updating the prototype without affecting other contructors.
 
-### [.addLogger](index.js#L99)
+### [._emit](index.js#L77)
+
+Factory for creating emitting log messages. This method is called internal for any logger or mode method that is called as a function. To listen for events, listen for the logger name or `'log'` when a mode is called as a method.
+
+Wildcard `*` may also be listened for and will get 2 arguments `(name, stats)` where
+`name` is the event that was emitted and `stats` is the stats object for that event.
+
+**Params**
+
+* `name` **{String}**: the name of the log event to emit. Example: `info`
+* `message` **{String}**: Message intended to be emitted.
+* `returns` **{Object}** `Logger`: for chaining
+
+**Events**
+
+* `emits`: `*` Wildcard emitter that emits the logger event name and stats object.
+* `emits`: `name` Emitter that emits the stats object for the specified name.
+
+**Example**
+
+```js
+// emit `info` when `info` is a logger method
+logger.info('message');
+
+// emit `log` when `verbose` is a mode method
+logger.verbose('message');
+
+// listen for all events
+logger.on('*', function(name, stats) {
+  console.log(name);
+  //=> info
+});
+
+logger.info('message');
+```
+
+### [.addLogger](index.js#L123)
 
 Add a logger method to emit an event with the given `name`.
 
@@ -54,7 +90,7 @@ logger.red.write('this is a read message');
 logger.info('this is a cyan message');
 ```
 
-### [.addMode](index.js#L147)
+### [.addMode](index.js#L171)
 
 Add arbitrary modes to be used for creating namespaces for logger methods.
 
