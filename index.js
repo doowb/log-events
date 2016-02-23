@@ -91,7 +91,7 @@ function create() {
    * @param  {Object} `options` Options used when creating the logger method.
    * @param  {String|Array} `options.type` Type of logger method being created. Defaults to `logger`. Valid values are `['logger', 'modifier']`
    * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
-   * @emits  {String} `addLogger` Emits name of the logger after adding the logger method.
+   * @emits  {String} `addLogger` Emits name and new logger instance after adding the logger method.
    * @return {Object} `Logger` for chaining
    * @api public
    */
@@ -107,7 +107,7 @@ function create() {
         return fn;
       }
     });
-    this.emit('addLogger', name);
+    this.emit('addLogger', name, this.modifiers[name]);
     return this;
   };
 
@@ -139,7 +139,7 @@ function create() {
    *                                      e.g. `not.verbose`
    *                                      `toggle` modes may not be used directly for emitting log events.
    * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
-   * @emits  {String} `addMode` Emits name of the mode after adding the mode method.
+   * @emits  {String} `addMode` Emits the name and new mode instance after adding the mode method.
    * @return {Object} `Logger` for chaining
    * @api public
    */
@@ -150,7 +150,7 @@ function create() {
       enumerable: true,
       get: buildMode.call(this, mode, options, fn)
     });
-    this.emit('addMode', mode);
+    this.emit('addMode', mode, this.modes[mode]);
     return this;
   };
 

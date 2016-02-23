@@ -57,16 +57,18 @@ describe('log-events', function() {
   });
 
   it('should emit when adding a new logger method', function(cb) {
-    logger.on('addLogger', function(name) {
+    logger.on('addLogger', function(name, modifier) {
       assert.equal(name, 'write');
+      assert.deepEqual(logger.modifiers[name], modifier);
       cb();
     });
     logger.addLogger('write');
   });
 
   it('should emit when adding a new mode method', function(cb) {
-    logger.on('addMode', function(name) {
+    logger.on('addMode', function(name, mode) {
       assert.equal(name, 'verbose');
+      assert.deepEqual(logger.modes[name], mode);
       cb();
     });
     logger.addMode('verbose');
