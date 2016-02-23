@@ -78,7 +78,7 @@ logger.addMode('debug', function(msg) {
 /**
  * Listen for all emitted events and process the event stats object.
  */
-logger.on('*', function(stats) {
+logger.on('*', function(name, stats) {
   this.process(stats);
 });
 

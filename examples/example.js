@@ -23,7 +23,7 @@ logger.options = {};
  * ```
  */
 
-logger.on('*', function(stats) {
+logger.on('*', function(name, stats) {
   // see [verbalize](https://github.com/jonschlinkert/verbalize) for more advanced usage
   // and built in helpers
 
