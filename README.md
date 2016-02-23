@@ -31,7 +31,7 @@ Add a logger method to emit an event with the given `name`.
 
 **Events**
 
-* `emits`: `addLogger` Emits name of the logger after adding the logger method.
+* `emits`: `addLogger` Emits name and new logger instance after adding the logger method.
 
 **Example**
 
@@ -68,7 +68,7 @@ Add arbitrary modes to be used for creating namespaces for logger methods.
 
 **Events**
 
-* `emits`: `addMode` Emits name of the mode after adding the mode method.
+* `emits`: `addMode` Emits the name and new mode instance after adding the mode method.
 
 **Example**
 
