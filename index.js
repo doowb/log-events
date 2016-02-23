@@ -43,10 +43,35 @@ function create() {
 
   /**
    * Factory for creating emitting log messages.
+   * This method is called internal for any logger or mode method that is
+   * called as a function. To listen for events, listen for the logger name or
+   * `'log'` when a mode is called as a method.
+   *
+   * Wildcard `*` may also be listened for and will get 2 arguments `(name, stats)` where
+   * `name` is the event that was emitted and `stats` is the stats object for that event.
+   *
+   * ```js
+   * // emit `info` when `info` is a logger method
+   * logger.info('message');
+   *
+   * // emit `log` when `verbose` is a mode method
+   * logger.verbose('message');
+   *
+   * // listen for all events
+   * logger.on('*', function(name, stats) {
+   *   console.log(name);
+   *   //=> info
+   * });
+   *
+   * logger.info('message');
+   * ```
    *
    * @param  {String} `name` the name of the log event to emit. Example: `info`
    * @param  {String} `message` Message intended to be emitted.
+   * @emits  {String, Object} `*` Wildcard emitter that emits the logger event name and stats object.
+   * @emits  {Object} `name` Emitter that emits the stats object for the specified name.
    * @return {Object} `Logger` for chaining
+   * @api public
    */
 
   Logger.prototype._emit = function(name/*, message*/) {
@@ -56,10 +81,9 @@ function create() {
       throw new Error('Unable to find logger "' + name + '"');
     }
     this.stack.setName(logger);
-    // console.log(this.stack.items);
     this.stack.process(function(stats) {
       stats.args = args;
-      this.emit.call(this, '*', stats);
+      this.emit.call(this, '*', stats.name, stats);
       this.emit.call(this, stats.name, stats);
     }, this);
     return this;
