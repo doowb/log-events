@@ -11,7 +11,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('log', {type: 'logger'}, function() {
+    this.emitter('log', function() {
       return this.stylize('bold', arguments);
     });
 
@@ -22,7 +22,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('subhead', {type: 'logger'}, function() {
+    this.emitter('subhead', function() {
       return this.stylize('bold', arguments);
     });
 
@@ -32,7 +32,7 @@ module.exports = function(options) {
      * @return {String}
      */
 
-    this.style('time', {type: 'logger'}, function() {
+    this.style('time', function() {
       var time = new Date().toLocaleTimeString();
       return this.bgBlack.white(time) + ' ';
     });
@@ -44,7 +44,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('timestamp', {type: 'logger'}, function() {
+    this.style('timestamp', function() {
       var args = [].slice.call(arguments);
       args[0] = this.time() + this.gray(args[0]);
       return args;
@@ -57,7 +57,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('inform', {type: 'logger'}, function() {
+    this.emitter('inform', function() {
       return this.stylize('gray', arguments);
     });
 
@@ -68,7 +68,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('info', {type: 'logger'}, function() {
+    this.emitter('info', function() {
       return this.stylize('cyan', arguments);
     });
 
@@ -79,7 +79,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('warn', {type: 'logger'}, function() {
+    this.emitter('warn', function() {
       return this.stylize('yellow', arguments);
     });
 
@@ -90,7 +90,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('error', {type: 'logger'}, function() {
+    this.emitter('error', function() {
       return this.stylize('red', arguments);
     });
 
@@ -101,7 +101,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('success', {type: 'logger'}, function() {
+    this.emitter('success', function() {
       return this.stylize('green', arguments);
     });
 
@@ -112,7 +112,7 @@ module.exports = function(options) {
      * @api public
      */
 
-    this.style('fatal', {type: 'logger'}, function() {
+    this.emitter('fatal', function() {
       var args = [].slice.call(arguments);
       args[0] = (this.red('  ' + this.runner + ' [FAIL]:') + this.gray(' · ') + args[0]);
       console.log();

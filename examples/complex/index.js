@@ -35,9 +35,7 @@ logger.use(isEnabled());
 
 logger.define('process', function(stats) {
   // convert modes to an array of strings by `mode.name`
-  var modes = stats.modes.map(function(mode) {
-    return mode.name;
-  });
+  var modes = stats.getModes('name');
 
   // if a mode is set and that mode's option is true
   // on the application options object
@@ -49,11 +47,14 @@ logger.define('process', function(stats) {
       return mode.fn(acc);
     }, stats.args);
 
-    // iterate over the modifiers and apply any of their
+    // iterate over the styles and apply any of their
     // modifier functions to the arguments
-    res = stats.modifiers.reduce(function(acc, modifier) {
-      return this.stylize(modifier, acc);
+    res = stats.styles.reduce(function(acc, style) {
+      return this.styles[style](acc);
     }.bind(this), res);
+
+    res = utils.toArray(res);
+    res = logger.emitters[stats.name].fn.apply(logger, res);
 
     // write the modified arguments to process.stdout.
     this.writeln.apply(this, res);
@@ -65,13 +66,13 @@ logger.define('process', function(stats) {
  */
 
 // just an option setting
-logger.addMode('verbose');
+logger.mode('verbose');
 
 // use this as a toggle value
-logger.addMode('not', {type: 'toggle'});
+logger.mode('not', {type: 'toggle'});
 
 // option setting but allows modifying the content
-logger.addMode('debug', function(msg) {
+logger.mode('debug', function(msg) {
   return '[debug]: ' + msg;
 });
 
@@ -119,7 +120,7 @@ logger
 /**
  * Log out a green message event though it's marked as a 'modifier' or "style"
  */
-logger.green('use a style directly');
+console.log(logger.green('use a style directly'));
 
 /**
  * Can even use modes with "styles"

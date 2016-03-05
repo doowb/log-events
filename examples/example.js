@@ -40,16 +40,18 @@ logger.on('*', function(name, stats) {
     if (!valid) return;
   }
 
-  // apply mode modifier functions to the args
+  // apply mode functions to the args
   var output = stats.modes.reduce(function(acc, mode) {
     return mode.fn(acc);
   }, stats.args);
 
-  // apply modifier functions to the args before outputing to the console
-  output = stats.modifiers.reduce(function(acc, modifier) {
-    return modifier.fn(acc);
+  // apply style functions to the args before outputing to the console
+  output = stats.styles.reduce(function(acc, style) {
+    return logger.styles[style](acc);
   }, output);
 
+  // apply emitter functions to the args before outputing to the console
+  output = logger.emitters[stats.name].fn(output);
   console.log.apply(console, ['[' + stats.name + ']:'].concat(output));
 });
 
@@ -61,11 +63,11 @@ logger.log('this is a simple log event');
 console.log();
 
 /**
- * Create custom logger methods with `.addLogger`
+ * Create custom logger methods with `.emitter`
  */
 
-logger.addLogger('info');
-logger.addLogger('warn');
+logger.emitter('info');
+logger.emitter('warn');
 logger.info('this is a custom log event');
 console.log();
 
@@ -77,14 +79,10 @@ logger.info.warn('chained loggers are both called logged twice');
 console.log();
 
 /**
- * Custom logger methods can may also have a type of `modifier`
- * to indicate that it should not be emitted unless called as a method.
- *
- * A modifier function may also be passed through to be set on the modifier
- * for use when the event is emitted.
+ * Custom style methods may be used.
  */
 
-logger.addLogger('cyan', {type: ['modifier']}, function(msg) {
+logger.style('cyan', function(msg) {
   return '\u001b[36m' + msg + '\u001b[39m';
 });
 logger.cyan.info('this is only logged once but with a cyan color');
@@ -94,20 +92,24 @@ console.log();
  * Custom modes can be added and used to change the behavior inside event listeners
  */
 
-logger.addMode('verbose');
+logger.mode('verbose');
 
 logger.verbose.info('[before setting the option]: this will only be seen if `options.verbose` is `true`');
 logger.options.verbose = true;
 logger.verbose.info('[after setting the option]: this will only be seen if `options.verbose` is `true`');
 console.log();
 
+logger.style('yellow', function(msg) {
+  return '\u001b[33m' + msg + '\u001b[39m';
+});
+
 /**
  * Modes can also have a modifier function applied to be able to add additional information to a message.
  * This needs to be handled inside the event listener.
  */
 
-logger.addMode('debug', function(msg) {
-  return '\u001b[33m[debug]\u001b[39m: ' + msg;
+logger.mode('debug', function(msg) {
+  return logger.yellow('[debug]') + ': ' + msg;
 });
 
 logger.options.debug = true;
