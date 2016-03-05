@@ -7,7 +7,7 @@
 Install with [npm](https://www.npmjs.com/):
 
 ```sh
-$ npm i log-events --save
+$ npm install log-events --save
 ```
 
 ## Usage
@@ -17,28 +17,28 @@ $ npm i log-events --save
 Create a new `Logger` constructor to allow
 updating the prototype without affecting other contructors.
 
-### [._emit](index.js#L77)
+### [._emit](index.js#L82)
 
-Factory for creating emitting log messages. This method is called internal for any logger or mode method that is called as a function. To listen for events, listen for the logger name or `'log'` when a mode is called as a method.
+Factory for emitting log messages. This method is called internally for any emitter or mode method that is called as a function. To listen for events, listen for the emitter name or `'log'` when a mode is called as a method.
 
 Wildcard `*` may also be listened for and will get 2 arguments `(name, stats)` where
-`name` is the event that was emitted and `stats` is the stats object for that event.
+`name` is the emitter that was emitted and `stats` is the stats object for that event.
 
 **Params**
 
-* `name` **{String}**: the name of the log event to emit. Example: `info`
+* `name` **{String}**: the name of the emitter event to emit. Example: `info`
 * `message` **{String}**: Message intended to be emitted.
 * `returns` **{Object}** `Logger`: for chaining
 
 **Events**
 
-* `emits`: `*` Wildcard emitter that emits the logger event name and stats object.
-* `emits`: `name` Emitter that emits the stats object for the specified name.
+* `emits`: `*` Wildcard emitter that emits the emitter event name and stats object.
+* `emits`: `stats` Emitter that emits the stats object for the specified name.
 
 **Example**
 
 ```js
-// emit `info` when `info` is a logger method
+// emit `info` when `info` is an emitter method
 logger.info('message');
 
 // emit `log` when `verbose` is a mode method
@@ -53,74 +53,74 @@ logger.on('*', function(name, stats) {
 logger.info('message');
 ```
 
-### [.addLogger](index.js#L123)
+### [.emitter](index.js#L127)
 
-Add a logger method to emit an event with the given `name`.
+Add an emitter method to emit an event with the given `name`.
 
 **Params**
 
-* `name` **{String}**: the name of the log event to emit
-* `options` **{Object}**: Options used when creating the logger method.
-* `options.type` **{String|Array}**: Type of logger method being created. Defaults to `logger`. Valid values are `['logger', 'modifier']`
-* `fn` **{Function}**: Optional modifier function that can be used to modify an emitted message.
-* `returns` **{Object}** `Logger`: for chaining
+* `name` **{String}**: the name of the emitter event to emit.
+* `level` **{Number}**: Priority level of the emitter. Higher numbers are less severe. (Default: 100)
+* `fn` **{Function}**: Optional emitter function that can be used to modify an emitted message. Function may be an existing style function.
+* `returns` **{Object}** `this`: for chaining
 
 **Events**
 
-* `emits`: `addLogger` Emits name and new logger instance after adding the logger method.
+* `emits`: `emitter` Emits name and new emitter instance after adding the emitter method.
 
 **Example**
 
 ```js
-// add a default `write` logger
-logger.addLogger('write');
+// add a default `write` emitter
+logger.emitter('write');
 
-// add a `red` logger that modifies the msg
-logger.addLogger('red', {type: 'modifier'}, function(msg) {
+// add some styles
+logger.style('red', function(msg) {
   return colors.red(msg);
 });
-
-// add an `info` logger that colors the msg
-logger.addLogger('info', function(msg) {
+logger.style('cyan', function(msg) {
   return colors.cyan(msg);
 });
 
+// add an `info` logger that colors the msg cyan
+logger.emitter('info', logger.cyan);
+
 // use the loggers:
-logger.red.write('this is a read message');
+logger.red.write('this is a red message');
 logger.info('this is a cyan message');
 ```
 
-### [.addMode](index.js#L171)
+### [.mode](index.js#L175)
 
-Add arbitrary modes to be used for creating namespaces for logger methods.
+Add arbitrary modes to be used for creating namespaces for emitter methods.
 
 **Params**
 
 * `mode` **{String}**: Mode to add to the logger.
 * `options` **{Object}**: Options to describe the mode.
 * `options.type` **{String|Array}**: Type of mode being created. Defaults to `mode`. Valid values are `['mode', 'toggle']` `toggle` mode may be used to indicate a "flipped" state for another mode. e.g. `not.verbose` `toggle` modes may not be used directly for emitting log events.
-* `fn` **{Function}**: Optional modifier function that can be used to modify an emitted message.
-* `returns` **{Object}** `Logger`: for chaining
+* `fn` **{Function}**: Optional style function that can be used to stylize an emitted message.
+* `returns` **{Object}** `this`: for chaining
 
 **Events**
 
-* `emits`: `addMode` Emits the name and new mode instance after adding the mode method.
+* `emits`: `mode` Emits the name and new mode instance after adding the mode method.
 
 **Example**
 
 ```js
 // create a simple `verbose` mode
-logger.addMode('verbose');
+logger.mode('verbose');
 
 // create a `not` toggle mode
-logger.addMode('not', {type: 'toggle'});
+logger.mode('not', {type: 'toggle'});
 
 // create a `debug` mode that modifies the message
-logger.addMode('debug', function(msg) {
+logger.mode('debug', function(msg) {
   return '[DEBUG]: ' + msg;
 });
 
-// use the modes with loggers from above:
+// use the modes with styles and emitters from above:
 logger.verbose.red.write('write a red message when verbose is true');
 logger.not.verbose.info('write a cyan message when verbose is false');
 logger.debug('write a message when debug is true');
@@ -179,66 +179,13 @@ console.log(msg);
 //=> "\u001b[31msome error message\u001b[39m";
 ```
 
-### [Modifier](lib/modifier.js#L18)
-
-Modifier constructor for making a modifier object when
-a modifier is created with `logger.create()`
-
-**Params**
-
-* `options` **{Object}**: Options to configure the modifier.
-* `options.name` **{String}**: Required name of the modifier
-* `options.type` **{String|Type}**: Type of modifier to create. Defaults to `modifier`. Values may be `['modifier', 'logger']`.
-
-### [type](lib/modifier.js#L43)
-
-Type of `modifier`. Valid types are ['modifier', 'logger']
-
-**Example**
-
-```js
-console.log(red.type);
-//=> "modifier"
-console.log(error.type);
-//=> "logger"
-```
-
-### [name](lib/modifier.js#L69)
-
-Readable name of `modifier`.
-
-**Example**
-
-```js
-console.log(red.name);
-//=> "red"
-console.log(error.name);
-//=> "error"
-```
-
-### [](lib/modifier.js#L97)`fn`
-
-Optional modifier function that accepts a value and returns a modified value. When not present, an identity function is used to return the original value.
-
-**Example**
-
-```js
-var msg = "some error message";
-
-// wrap message in ansi codes for "red"
-msg = red.fn(msg);
-console.log(msg);
-
-//=> "\u001b[31msome error message\u001b[39m";
-```
-
 ### [Stats](lib/stats.js#L33)
 
 Stats contructor that contains information about a chained event being built up.
 
 **Params**
 
-* `parent` **{Object}**: Optional stats instance to inherit `modes` and `modifiers` from.
+* `parent` **{Object}**: Optional stats instance to inherit `modes` and `styles` from.
 
 **Example**
 
@@ -247,22 +194,22 @@ Stats contructor that contains information about a chained event being built up.
   // "not" => toggle, "verbose" => mode
   modes: ['not', 'verbose'],
 
-  // "red" => modifier, "subhead" => logger
-  modifiers: ['red', 'subhead'],
+  // "red" => modifier
+  styles: ['red'],
 
-  // specified when logger is created
+  // specified when emitter is created
   level: 1,
 
-  // name of logger that will trigger an event
+  // name of emitter that will trigger an event
   // in this case "red" will not trigger an event
   name: 'subhead',
 
-  // arguments passed into logger function "subhead"
+  // arguments passed into emitter function "subhead"
   args: ['foo', 'bar', 'baz']
 }
 ```
 
-### [.addMode](lib/stats.js#L112)
+### [.addMode](lib/stats.js#L80)
 
 Add a mode to the `modes` array for this stats object.
 
@@ -278,7 +225,7 @@ var verbose = new Mode({name: 'verbose'});
 stats.addMode(verbose);
 ```
 
-### [.getModes](lib/stats.js#L133)
+### [.getModes](lib/stats.js#L101)
 
 Get the array of modes from the stats object. Optionally, pass a property in and return an array with only the property.
 
@@ -296,54 +243,35 @@ var modeNames = stats.getModes('name');
 //=> ['verbose']
 ```
 
-### [.addModifier](lib/stats.js#L153)
+### [.addStyle](lib/stats.js#L120)
 
-Add a modifier to the `modifiers` array for this stats object.
+Add a style to the `styles` array for this stats object.
 
 **Params**
 
-* `modifier` **{Object}**: Instance of a Modifier to add to the stats object.
+* `style` **{String}**: Name of style to add.
 * `returns` **{Object}** `this`: for chaining.
 
 **Example**
 
 ```js
-var info = new Modifier({name: 'info'});
-stats.addModifier(info);
+stats.addStyle('red');
 ```
 
-### [.getModifiers](lib/stats.js#L174)
+### [.addEmitter](lib/stats.js#L137)
 
-Get the array of modifiers from the stats object. Optionally, pass a property in and return an array with only the property.
+Sets the emitter for this stats object to indicate this is a complete stats object ready to be emitted.
 
 **Params**
 
-* `prop` **{String}**: Optional property to pick from the modifier objects to return.
-* `returns` **{Array}**: Array of modifiers or modifier properties.
-
-**Example**
-
-```js
-var modifiers = stats.getModifiers();
-//=> [{name: 'verbose'}]
-var modifierNames = stats.getModifiers('name');
-//=> ['verbose']
-```
-
-### [.addLogger](lib/stats.js#L197)
-
-Add a modifier to the `modifiers` array for this stats object. Same as `addModifier` but also sets the `.name` property on the stats object to indicate this is a complete stats object ready to be emitted.
-
-**Params**
-
-* `modifier` **{Object}**: Instance of a Modifier to add to the stats object.
+* `emitter` **{Object}**: Instance of a Emitter to add to the stats object.
 * `returns` **{Object}** `this`: for chaining.
 
 **Example**
 
 ```js
-var info = new Modifier({name: 'info'});
-stats.addLogger(info);
+var info = new Emitter({name: 'info'});
+stats.addEmitter(info);
 ```
 
 ## Related projects
@@ -352,12 +280,16 @@ stats.addLogger(info);
 * [is-enabled](https://www.npmjs.com/package/is-enabled): Using key paths that may contain "falsey" patterns, check if a property on an object… [more](https://www.npmjs.com/package/is-enabled) | [homepage](https://github.com/doowb/is-enabled)
 * [verbalize](https://www.npmjs.com/package/verbalize): A lightweight command line logging utility, with verbose mode and colors by chalk. | [homepage](https://github.com/jonschlinkert/verbalize)
 
-## Generate docs
+## Contributing
+
+Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/doowb/log-events/issues/new).
+
+## Building docs
 
 Generate readme and API documentation with [verb][]:
 
 ```sh
-$ npm i -d && npm run docs
+$ npm install verb && npm run docs
 ```
 
 Or, if [verb][] is installed globally:
@@ -371,12 +303,8 @@ $ verb
 Install dev dependencies:
 
 ```sh
-$ npm i -d && npm test
+$ npm install -d && npm test
 ```
-
-## Contributing
-
-Pull requests and stars are always welcome. For bugs and feature requests, [please create an issue](https://github.com/doowb/log-events/issues/new).
 
 ## Author
 
@@ -392,4 +320,4 @@ Released under the [MIT license](https://github.com/doowb/log-events/blob/master
 
 ***
 
-_This file was generated by [verb](https://github.com/verbose/verb), v0.1.0, on February 22, 2016._
+_This file was generated by [verb](https://github.com/verbose/verb), v0.9.0, on March 05, 2016._
