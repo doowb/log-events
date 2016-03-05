@@ -7,10 +7,10 @@
 
 'use strict';
 
-var Emitter = require('component-emitter');
+var ComponentEmitter = require('component-emitter');
 var utils = require('./lib/utils');
 var Mode = require('./lib/mode');
-var Modifier = require('./lib/modifier');
+var Emitter = require('./lib/emitter');
 var Stack = require('./lib/stack');
 
 function create() {
@@ -27,31 +27,36 @@ function create() {
       return new Logger();
     }
 
-    this.methods = {};
-    this.modes = {};
-    this.modifiers = {};
-    this.stack = new Stack();
-    // default logger "log"
-    this.addLogger('log');
+    utils.define(this, 'emitterKeys', []);
+    utils.define(this, 'emitters', {});
+    utils.define(this, 'methods', {});
+    utils.define(this, 'modeKeys', []);
+    utils.define(this, 'modes', {});
+    utils.define(this, 'styleKeys', []);
+    utils.define(this, 'styles', {});
+    utils.define(this, 'stack', new Stack());
+
+    // default emitter "log"
+    this.emitter('log');
   }
 
   /**
-   * Mixin `Emitter` prototype methods
+   * Mixin `ComponentEmitter` prototype methods
    */
 
-  Emitter(Logger.prototype);
+  ComponentEmitter(Logger.prototype);
 
   /**
-   * Factory for creating emitting log messages.
-   * This method is called internal for any logger or mode method that is
-   * called as a function. To listen for events, listen for the logger name or
+   * Factory for emitting log messages.
+   * This method is called internally for any emitter or mode method that is
+   * called as a function. To listen for events, listen for the emitter name or
    * `'log'` when a mode is called as a method.
    *
    * Wildcard `*` may also be listened for and will get 2 arguments `(name, stats)` where
-   * `name` is the event that was emitted and `stats` is the stats object for that event.
+   * `name` is the emitter that was emitted and `stats` is the stats object for that event.
    *
    * ```js
-   * // emit `info` when `info` is a logger method
+   * // emit `info` when `info` is an emitter method
    * logger.info('message');
    *
    * // emit `log` when `verbose` is a mode method
@@ -66,21 +71,20 @@ function create() {
    * logger.info('message');
    * ```
    *
-   * @param  {String} `name` the name of the log event to emit. Example: `info`
+   * @param  {String} `name` the name of the emitter event to emit. Example: `info`
    * @param  {String} `message` Message intended to be emitted.
-   * @emits  {String, Object} `*` Wildcard emitter that emits the logger event name and stats object.
-   * @emits  {Object} `name` Emitter that emits the stats object for the specified name.
+   * @emits  {String, Object} `*` Wildcard emitter that emits the emitter event name and stats object.
+   * @emits  {Object} `stats` Emitter that emits the stats object for the specified name.
    * @return {Object} `Logger` for chaining
    * @api public
    */
 
   Logger.prototype._emit = function(name/*, message*/) {
     var args = [].slice.call(arguments, 1);
-    var logger = this.modifiers[name];
-    if (!logger) {
-      throw new Error('Unable to find logger "' + name + '"');
+    var emitter = this.emitters[name];
+    if (!emitter) {
+      throw new Error('Unable to find emitter "' + name + '"');
     }
-    this.stack.setName(logger);
     this.stack.process(function(stats) {
       stats.args = args;
       this.emit.call(this, '*', stats.name, stats);
@@ -90,67 +94,67 @@ function create() {
   };
 
   /**
-   * Add a logger method to emit an event with the given `name`.
+   * Add an emitter method to emit an event with the given `name`.
    *
    * ```js
-   * // add a default `write` logger
-   * logger.addLogger('write');
+   * // add a default `write` emitter
+   * logger.emitter('write');
    *
-   * // add a `red` logger that modifies the msg
-   * logger.addLogger('red', {type: 'modifier'}, function(msg) {
+   * // add some styles
+   * logger.style('red', function(msg) {
    *   return colors.red(msg);
    * });
-   *
-   * // add an `info` logger that colors the msg
-   * logger.addLogger('info', function(msg) {
+   * logger.style('cyan', function(msg) {
    *   return colors.cyan(msg);
    * });
    *
+   * // add an `info` logger that colors the msg cyan
+   * logger.emitter('info', logger.cyan);
+   *
    * // use the loggers:
-   * logger.red.write('this is a read message');
+   * logger.red.write('this is a red message');
    * logger.info('this is a cyan message');
    * ```
    *
-   * @param  {String} `name` the name of the log event to emit
-   * @param  {Object} `options` Options used when creating the logger method.
-   * @param  {String|Array} `options.type` Type of logger method being created. Defaults to `logger`. Valid values are `['logger', 'modifier']`
-   * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
-   * @emits  {String} `addLogger` Emits name and new logger instance after adding the logger method.
-   * @return {Object} `Logger` for chaining
+   * @param  {String} `name` the name of the emitter event to emit.
+   * @param  {Number} `level` Priority level of the emitter. Higher numbers are less severe. (Default: 100)
+   * @param  {Function} `fn` Optional emitter function that can be used to modify an emitted message. Function may be an existing style function.
+   * @emits  {String} `emitter` Emits name and new emitter instance after adding the emitter method.
+   * @return {Object} `this` for chaining
    * @api public
    */
 
-  Logger.prototype.addLogger = function(name, options, fn) {
+  Logger.prototype.emitter = function(name, level, fn) {
     this.methods[name] = null;
     Object.defineProperty(Logger.prototype, name, {
       configurable: true,
       enumerable: true,
-      get: buildLogger.call(this, name, options, fn),
+      get: buildEmitter.call(this, name, level, fn),
       set: function(fn) {
         this.methods[name] = fn;
         return fn;
       }
     });
-    this.emit('addLogger', name, this.modifiers[name]);
+    this.emit('emitter', name);
     return this;
   };
 
   /**
-   * Add arbitrary modes to be used for creating namespaces for logger methods.
+   * Add arbitrary modes to be used for creating namespaces for emitter methods.
    *
    * ```js
    * // create a simple `verbose` mode
-   * logger.addMode('verbose');
+   * logger.mode('verbose');
    *
    * // create a `not` toggle mode
-   * logger.addMode('not', {type: 'toggle'});
+   * logger.mode('not', {type: 'toggle'});
    *
    * // create a `debug` mode that modifies the message
-   * logger.addMode('debug', function(msg) {
+   * logger.mode('debug', function(msg) {
    *   return '[DEBUG]: ' + msg;
    * });
    *
-   * // use the modes with loggers from above:
+   * // use the modes with styles and emitters from above:
    * logger.verbose.red.write('write a red message when verbose is true');
    * logger.not.verbose.info('write a cyan message when verbose is false');
    * logger.debug('write a message when debug is true');
@@ -162,44 +166,56 @@ function create() {
    *                                      `toggle` mode may be used to indicate a "flipped" state for another mode.
    *                                      e.g. `not.verbose`
    *                                      `toggle` modes may not be used directly for emitting log events.
-   * @param  {Function} `fn` Optional modifier function that can be used to modify an emitted message.
-   * @emits  {String} `addMode` Emits the name and new mode instance after adding the mode method.
-   * @return {Object} `Logger` for chaining
+   * @param  {Function} `fn` Optional style function that can be used to stylize an emitted message.
+   * @emits  {String} `mode` Emits the name and new mode instance after adding the mode method.
+   * @return {Object} `this` for chaining
    * @api public
    */
 
-  Logger.prototype.addMode = function(mode, options, fn) {
+  Logger.prototype.mode = function(mode, options, fn) {
     Object.defineProperty(Logger.prototype, mode, {
       configurable: true,
       enumerable: true,
       get: buildMode.call(this, mode, options, fn)
     });
-    this.emit('addMode', mode, this.modes[mode]);
+    this.emit('mode', mode);
+    return this;
+  };
+
+  Logger.prototype.style = function(style, fn) {
+    Object.defineProperty(Logger.prototype, style, {
+      configurable: true,
+      enumerable: true,
+      get: buildStyle.call(this, style, fn)
+    });
+    this.emit('style', style);
     return this;
   };
 
   /**
-   * Create a logger getter function that can be used in chaining
+   * Create an emitter getter function that can be used in chaining
    *
-   * @param  {String} `name` the name of the log event to emit
+   * @param  {String} `name` the name of the emitter event to emit
    * @return {Function} getter function to be used in `defineProperty`
    */
 
-  function buildLogger(name, options, fn) {
-    if (typeof options === 'function') {
-      fn = options;
-      options = {};
+  function buildEmitter(name, level, fn) {
+    if (typeof level === 'function') {
+      fn = level;
+      level = 100;
     }
-    var opts = utils.extend({name: name, type: 'logger', fn: fn}, options);
-    var logger = new Modifier(opts);
-    this.modifiers[name] = logger;
+    if (this.emitterKeys.indexOf(name) === -1) {
+      this.emitterKeys.push(name);
+    }
 
     return function() {
-      if (utils.hasType(logger.type, 'logger')) {
-        this.stack.addLogger(logger);
-      } else {
-        this.stack.addModifier(logger);
+      var emitter = this.emitters[name];
+      if (typeof emitter === 'undefined') {
+        emitter = new Emitter({name: name, level: level, fn: fn});
+        this.emitters[name] = emitter;
       }
+      this.stack.chainEmitter(emitter);
+
       var method;
       if (typeof this.methods[name] === 'function') {
         method = this.methods[name];
@@ -229,11 +245,18 @@ function create() {
       fn = options;
       options = {};
     }
-    var opts = utils.extend({name: name, type: 'mode', fn: fn}, options);
-    var mode = new Mode(opts);
-    this.modes[name] = mode;
+    if (this.modeKeys.indexOf(name) === -1) {
+      this.modeKeys.push(name);
+    }
 
     return function() {
+      var mode = this.modes[name];
+      if (typeof mode === 'undefined') {
+        var opts = utils.extend({name: name, type: 'mode', fn: fn}, options);
+        mode = new Mode(opts);
+        this.modes[name] = mode;
+      }
+
       this.stack.addMode(mode);
       if (utils.hasType(mode.type, 'toggle')) {
         var ModeWrapper = function() {};
@@ -241,19 +264,50 @@ function create() {
         inst.__proto__ = Logger.prototype;
         return inst;
       }
+
       var method;
       if (typeof this.methods[name] === 'function') {
         method = this.methods[name];
       } else {
         method = function(/*message*/) {
-          var args = [].slice.call(arguments);
-          args.unshift('log');
-          return this._emit.apply(this, args);
+          return this.log(...arguments);
         }.bind(this);
         this.methods[name] = method;
       }
       method.__proto__ = Logger.prototype;
       return method;
+    }.bind(this);
+  }
+
+  /**
+   * Create a style getter function that can be used in chaining
+   *
+   * @param  {String} `name` the name of the style
+   * @param {Function} `fn` style function to apply to the arguments when called
+   * @return {Function} getter function to be used in `defineProperty`
+   */
+
+  function buildStyle(name, fn) {
+    if (this.styleKeys.indexOf(name) === -1) {
+      this.styleKeys.push(name);
+    }
+
+    return function() {
+      var self = this;
+      var style;
+      this.stack.addStyle(name);
+      if (typeof this.styles[name] === 'function') {
+        style = this.styles[name];
+      } else {
+        style = function(/*message*/) {
+          var args = [].slice.call(arguments);
+          self.stack.removeStyle(name);
+          return fn.apply(self, args);
+        };
+        this.styles[name] = style;
+      }
+      style.__proto__ = Logger.prototype;
+      return style;
     }.bind(this);
   }
 
