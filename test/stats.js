@@ -10,7 +10,7 @@
 require('mocha');
 var assert = require('assert');
 var Mode = require('../lib/mode');
-var Modifier = require('../lib/modifier');
+var Emitter = require('../lib/emitter');
 var Stats = require('../lib/stats');
 
 describe('stats', function() {
@@ -20,7 +20,7 @@ describe('stats', function() {
     assert.equal(stats instanceof Stats, true);
     assert.equal(typeof stats.name, 'undefined');
     assert.equal(Array.isArray(stats.modes), true);
-    assert.equal(Array.isArray(stats.modifiers), true);
+    assert.equal(Array.isArray(stats.styles), true);
   });
 
   it('should create a new instance without `new` keyword', function() {
@@ -29,7 +29,7 @@ describe('stats', function() {
     assert.equal(stats instanceof Stats, true);
     assert.equal(typeof stats.name, 'undefined');
     assert.equal(Array.isArray(stats.modes), true);
-    assert.equal(Array.isArray(stats.modifiers), true);
+    assert.equal(Array.isArray(stats.styles), true);
   });
 
   it('should add a mode to the modes array', function() {
@@ -56,53 +56,36 @@ describe('stats', function() {
     assert.deepEqual(stats.getModes('name'), ['verbose']);
   });
 
-  it('should add a modifier to the modifiers array', function() {
+  it('should add a style to the styles array', function() {
     var stats = new Stats();
-    assert.deepEqual(stats.modifiers, []);
-    var modifier = new Modifier({name: 'red'});
-    stats.addModifier(modifier);
-    assert.deepEqual(stats.modifiers, [modifier]);
+    assert.deepEqual(stats.styles, []);
+    stats.addStyle('red');
+    assert.deepEqual(stats.styles, ['red']);
   });
 
-  it('should get array of modifiers', function() {
-    var stats = new Stats();
-    assert.deepEqual(stats.getModifiers(), []);
-    var modifier = new Modifier({name: 'red'});
-    stats.addModifier(modifier);
-    assert.deepEqual(stats.getModifiers(), [modifier]);
-  });
-
-  it('should get array of modifier names', function() {
-    var stats = new Stats();
-    assert.deepEqual(stats.getModifiers('name'), []);
-    var modifier = new Modifier({name: 'red'});
-    stats.addModifier(modifier);
-    assert.deepEqual(stats.getModifiers('name'), ['red']);
-  });
-
-  it('should create a new instance with modes and modifiers from a parent stats object', function() {
+  it('should create a new instance with modes and styles from a parent stats object', function() {
     var parent = Stats();
     parent.addMode(new Mode({name: 'verbose'}));
-    parent.addModifier(new Modifier({name: 'red'}));
-    parent.addModifier(new Modifier({name: 'error', type: 'logger'}));
+    parent.addStyle('red');
+    parent.addEmitter(new Emitter({name: 'error', level: 1}));
+    assert.equal(parent.name, 'error');
     assert.deepEqual(parent.getModes('name'), ['verbose']);
-    assert.deepEqual(parent.getModifiers('name'), ['red', 'error']);
+    assert.deepEqual(parent.styles, ['red']);
 
     var stats = Stats(parent);
     assert(stats);
     assert.equal(stats instanceof Stats, true);
     assert.equal(typeof stats.name, 'undefined');
     assert.equal(Array.isArray(stats.modes), true);
-    assert.equal(Array.isArray(stats.modifiers), true);
+    assert.equal(Array.isArray(stats.styles), true);
     assert.deepEqual(stats.getModes('name'), ['verbose']);
-    assert.deepEqual(stats.getModifiers('name'), ['red']);
+    assert.deepEqual(stats.styles, ['red']);
   });
 
-  it('should set the name when addLogger is called', function() {
+  it('should set the name when addEmitter is called', function() {
     var stats = new Stats();
     assert.equal(typeof stats.name, 'undefined');
-    stats.addLogger(new Modifier({name: 'error', type: 'logger'}));
+    stats.addEmitter(new Emitter({name: 'error', level: 0}));
     assert.equal(stats.name, 'error');
-    assert.deepEqual(stats.getModifiers('name'), ['error']);
   });
 });

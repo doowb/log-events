@@ -10,7 +10,7 @@
 require('mocha');
 var assert = require('assert');
 var Mode = require('../lib/mode');
-var Modifier = require('../lib/modifier');
+var Emitter = require('../lib/emitter');
 var Stack = require('../lib/stack');
 var Stats = require('../lib/stats');
 
@@ -57,88 +57,57 @@ describe('stack', function() {
     assert.deepEqual(stack.current.getModes('name'), ['verbose']);
   });
 
-  it('should add a modifier to the current modifiers array', function() {
+  it('should add a style to the current styles array', function() {
     var stack = new Stack();
-    assert.deepEqual(stack.current.modifiers, []);
-    var modifier = new Modifier({name: 'red'});
-    stack.addModifier(modifier);
-    assert.deepEqual(stack.current.modifiers, [modifier]);
-  });
-
-  it('should get array of current modifiers', function() {
-    var stack = new Stack();
-    assert.deepEqual(stack.current.getModifiers(), []);
-    var modifier = new Modifier({name: 'red'});
-    stack.addModifier(modifier);
-    assert.deepEqual(stack.current.getModifiers(), [modifier]);
-  });
-
-  it('should get array of current modifier names', function() {
-    var stack = new Stack();
-    assert.deepEqual(stack.current.getModifiers('name'), []);
-    var modifier = new Modifier({name: 'red'});
-    stack.addModifier(modifier);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red']);
+    assert.deepEqual(stack.current.styles, []);
+    stack.addStyle('red');
+    assert.deepEqual(stack.current.styles, ['red']);
   });
 
   it('should create a new Stats object when current.name is already set', function() {
     var stack = new Stack();
     stack.addMode(new Mode({name: 'verbose'}));
-    stack.addModifier(new Modifier({name: 'red'}));
-    var error = new Modifier({name: 'error', type: 'logger'});
-    stack.addModifier(error);
-    assert.equal(typeof stack.current.name, 'undefined');
-    stack.setName(error);
-    assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red', 'error']);
+    stack.addStyle('red');
+    var error = new Emitter({name: 'error', level: 0});
+    stack.addEmitter(error);
     assert.equal(stack.current.name, 'error');
+    assert.deepEqual(stack.current.getModes('name'), ['verbose']);
+    assert.deepEqual(stack.current.styles, ['red']);
 
-    stack.addModifier(new Modifier({name: 'warn', type: 'logger'}));
-    assert.equal(typeof stack.current.name, 'undefined');
+    stack.addEmitter(new Emitter({name: 'warn', level: 1}));
+    assert.equal(stack.current.name, 'warn');
     assert.deepEqual(stack.current.getModes('name'), []);
-    assert.deepEqual(stack.current.getModifiers('name'), ['warn']);
-  });
-
-  it('should add the logger when setting the name and the logger is not already added', function() {
-    var stack = new Stack();
-    stack.addMode(new Mode({name: 'verbose'}));
-    stack.addModifier(new Modifier({name: 'red'}));
-    var error = new Modifier({name: 'error', type: 'logger'});
-    assert.equal(typeof stack.current.name, 'undefined');
-    assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red']);
-    stack.setName(error);
-    assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red', 'error']);
-    assert.equal(stack.current.name, 'error');
+    assert.deepEqual(stack.current.styles, []);
   });
 
   it('should create new Stats object using current Stats information as parent', function() {
     // simulates doing `logger.verbose.red.error.warn('foo')`
     var stack = Stack();
     stack.addMode(new Mode({name: 'verbose'}));
-    stack.addModifier(new Modifier({name: 'red'}));
-    stack.addLogger(new Modifier({name: 'error', type: 'logger'}));
+    stack.addStyle('red');
+    stack.chainEmitter(new Emitter({name: 'error', level: 0}));
 
+    assert.equal(stack.current.name, 'error');
     assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red', 'error']);
+    assert.deepEqual(stack.current.styles, ['red']);
 
     var parent = stack.current;
-    stack.addLogger(new Modifier({name: 'warn', type: 'logger'}));
+    stack.chainEmitter(new Emitter({name: 'warn', level: 1}));
 
+    assert.equal(parent.name, 'error');
     assert.deepEqual(parent.getModes('name'), ['verbose']);
-    assert.deepEqual(parent.getModifiers('name'), ['red', 'error']);
+    assert.deepEqual(parent.styles, ['red']);
+
+    assert.equal(stack.current.name, 'warn');
     assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red', 'warn']);
+    assert.deepEqual(stack.current.styles, ['red']);
   });
 
   it('should set the current logger name', function() {
     var stack = new Stack();
     assert.equal(typeof stack.current.name, 'undefined');
-    var error = new Modifier({name: 'error'});
-    stack.addModifier(error);
-    assert.equal(typeof stack.current.name, 'undefined');
-    stack.setName(error);
+    var error = new Emitter({name: 'error'});
+    stack.addEmitter(error);
     assert.equal(stack.current.name, 'error');
   });
 
@@ -146,19 +115,22 @@ describe('stack', function() {
     // simulates doing `logger.verbose.red.error.warn('foo')`
     var stack = Stack();
     stack.addMode(new Mode({name: 'verbose'}));
-    stack.addModifier(new Modifier({name: 'red'}));
-    stack.addLogger(new Modifier({name: 'error', type: 'logger'}));
+    stack.addStyle('red');
+    stack.chainEmitter(new Emitter({name: 'error', level: 0}));
 
+    assert.equal(stack.current.name, 'error');
     assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red', 'error']);
+    assert.deepEqual(stack.current.styles, ['red']);
 
     var parent = stack.current;
-    stack.addLogger(new Modifier({name: 'warn', type: 'logger'}));
+    stack.chainEmitter(new Emitter({name: 'warn', level: 1}));
 
+    assert.equal(parent.name, 'error');
     assert.deepEqual(parent.getModes('name'), ['verbose']);
-    assert.deepEqual(parent.getModifiers('name'), ['red', 'error']);
+    assert.deepEqual(parent.styles, ['red']);
+    assert.equal(stack.current.name, 'warn');
     assert.deepEqual(stack.current.getModes('name'), ['verbose']);
-    assert.deepEqual(stack.current.getModifiers('name'), ['red', 'warn']);
+    assert.deepEqual(stack.current.styles, ['red']);
 
     var items = stack.items;
     stack.process(function(stats, i) {
